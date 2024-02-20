@@ -73,7 +73,7 @@ class Trip {
                   u.username
            FROM trips AS "t"
            JOIN users AS "u" ON t.user_id = u.id
-           WHERE id = $1`,
+           WHERE t.id = $1`,
         [id]);
 
     const trip = tripRes.rows[0];
@@ -82,8 +82,7 @@ class Trip {
 
     const imagesRes = await db.query(
           `SELECT id,
-                  file_name AS "fileName",
-                  file_path AS "filePath",
+                  file_url AS "fileUrl",         
                   caption,
                   tag1,
                   tag2,

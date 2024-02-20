@@ -16,20 +16,20 @@ class TravelerApi {
 
   static async request(endpoint, data = {}, method = "get", formData = false) {
     console.debug("API Call:", endpoint, data, method);
-
+    
     const url = `${BASE_URL}/${endpoint}`;
-    // const headers = formData ? 
-    // { Authorization: `Bearer ${TravelerApi.token}`,
-    //   "content-type": 'multipart/form-data' }
-    //                       :
-    //   { Authorization: `Bearer ${TravelerApi.token}`};
+    const headers = formData ? 
+    { Authorization: `Bearer ${TravelerApi.token}`,
+      "Content-Type": 'multipart/form-data' }
+                          :
+      { Authorization: `Bearer ${TravelerApi.token}`};
 
-    const headers = { Authorization: `Bearer ${TravelerApi.token}`};
+    //const headers = { Authorization: `Bearer ${TravelerApi.token}`};
 
     const params = (method === "get")
         ? data
         : {};
-
+      console.log({ url, method, data, params, headers });
     try {
       return (await axios({ url, method, data, params, headers })).data;
     } catch (err) {
@@ -54,6 +54,7 @@ class TravelerApi {
   }
 
   static async addImageToTrip(id, data) {
+  
     let res = await this.request(`trips/${id}`, data, "post", true);
     return res.imageId;
   }
@@ -68,7 +69,8 @@ class TravelerApi {
   /** Get details on a trip by id */
 
   static async getTrip(id) {
-    let res = await this.request(`companies/${id}`);
+    let res = await this.request(`trips/${id}`);
+    //return res.trip;
     return res.trip;
   }
 
@@ -77,7 +79,6 @@ class TravelerApi {
     let res = await this.request(`users/${id}/trips`)
     return res.trips;
   }
-
 
   /** Get token for login from username, password. */
 

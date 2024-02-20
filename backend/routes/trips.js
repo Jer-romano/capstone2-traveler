@@ -23,7 +23,7 @@ AWS.config.update({
 })
 
 // Set up Multer for file uploads
-const s3 = new AWS.S3();
+const s3 = new AWS.S3({httpOptions: {timeout: 10000}});
 const storage = multer.memoryStorage();
 
 const upload = multer({storage: storage});
@@ -70,7 +70,7 @@ router.get("/", async function (req, res, next) {
 /** GET /[id]  =>  { trip }
  *
  *  trip is { id, title, userId, images }
- *  where images is [{id, fileName, filePath, caption, tag1, tag2, tag3}, ...]
+ *  where images is [{id, file, caption, tag1, tag2, tag3}, ...]
  *
  * Authorization required: none
  */
@@ -78,11 +78,16 @@ router.get("/", async function (req, res, next) {
 router.get("/:id", async function (req, res, next) {
   try {
     const trip = await Trip.get(req.params.id);
+
+    console.log("Images", trip.images);
+
     return res.json({ trip });
+
   } catch (err) {
     return next(err);
   }
 });
+
 
 /** POST /[id] { fld1, fld2, ... } => { trip }
  *
@@ -102,7 +107,7 @@ router.post("/:id", upload.single('file'), async function (req, res, next) {
     return res.status(400).send('No file uploaded.');
   }
   // Check if caption exists
-  if(!req.caption) {
+  if(!req.body.caption) {
     return res.status(400).send('No caption for file.');
   }
 
@@ -111,9 +116,11 @@ router.post("/:id", upload.single('file'), async function (req, res, next) {
     return res.status(400).send('Uploaded file is missing required properties.');
   }
 
+  const folder = "tripimages/";
+
   const params = {
     Bucket: 'traveler-capstone-images',
-    Key: file.originalname,
+    Key: folder + file.originalname,
     Body: file.buffer,
     ContentType: file.mimetype
   };
@@ -128,7 +135,7 @@ router.post("/:id", upload.single('file'), async function (req, res, next) {
     try {
       let imageData = {
                       file_url: data.Location,
-                      caption: req.caption
+                      caption: req.body.caption
       }
       await Trip.addImage(req.params.id, imageData);
       res.send(`File uploaded successfully. URL: ${data.Location}`);
